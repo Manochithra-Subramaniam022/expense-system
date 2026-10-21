@@ -286,7 +286,7 @@ export const ReportsView = ({
                 <span className="stat-title">Company Spend</span>
                 <Building2 size={18} style={{ color: 'var(--accent-company)' }} />
               </div>
-              <div className="stat-amount" style={{ color: '#a5b4fc' }}>{formatCurrency(dailyData.company)}</div>
+              <div className="stat-amount" style={{ color: 'var(--accent-company-text)' }}>{formatCurrency(dailyData.company)}</div>
               <div className="stat-footer">
                 <span>{dailyData.total ? `${Math.round((dailyData.company / dailyData.total) * 100)}% of day's total` : '0%'}</span>
                 <span>{dailyData.expenses.filter(e => e.category === 'company').length} items</span>
@@ -298,7 +298,7 @@ export const ReportsView = ({
                 <span className="stat-title">Personal Spend</span>
                 <User size={18} style={{ color: 'var(--accent-personal)' }} />
               </div>
-              <div className="stat-amount" style={{ color: '#6ee7b7' }}>{formatCurrency(dailyData.personal)}</div>
+              <div className="stat-amount" style={{ color: 'var(--accent-personal-text)' }}>{formatCurrency(dailyData.personal)}</div>
               <div className="stat-footer">
                 <span>{dailyData.total ? `${Math.round((dailyData.personal / dailyData.total) * 100)}% of day's total` : '0%'}</span>
                 <span>{dailyData.expenses.filter(e => e.category === 'personal').length} items</span>
@@ -430,7 +430,7 @@ export const ReportsView = ({
                 <span className="stat-title">Company Spend (Week)</span>
                 <Building2 size={18} style={{ color: 'var(--accent-company)' }} />
               </div>
-              <div className="stat-amount" style={{ color: '#a5b4fc' }}>{formatCurrency(weeklyData.weekCompany)}</div>
+              <div className="stat-amount" style={{ color: 'var(--accent-company-text)' }}>{formatCurrency(weeklyData.weekCompany)}</div>
               <div className="stat-footer">
                 <span>{weeklyData.weekTotal ? `${Math.round((weeklyData.weekCompany / weeklyData.weekTotal) * 100)}% of week` : '0%'}</span>
               </div>
@@ -441,7 +441,7 @@ export const ReportsView = ({
                 <span className="stat-title">Personal Spend (Week)</span>
                 <User size={18} style={{ color: 'var(--accent-personal)' }} />
               </div>
-              <div className="stat-amount" style={{ color: '#6ee7b7' }}>{formatCurrency(weeklyData.weekPersonal)}</div>
+              <div className="stat-amount" style={{ color: 'var(--accent-personal-text)' }}>{formatCurrency(weeklyData.weekPersonal)}</div>
               <div className="stat-footer">
                 <span>{weeklyData.weekTotal ? `${Math.round((weeklyData.weekPersonal / weeklyData.weekTotal) * 100)}% of week` : '0%'}</span>
               </div>
@@ -572,7 +572,7 @@ export const ReportsView = ({
                 <span className="stat-title">Company Monthly Outflow</span>
                 <Building2 size={18} style={{ color: 'var(--accent-company)' }} />
               </div>
-              <div className="stat-amount" style={{ color: '#a5b4fc' }}>{formatCurrency(monthlyData.company)}</div>
+              <div className="stat-amount" style={{ color: 'var(--accent-company-text)' }}>{formatCurrency(monthlyData.company)}</div>
               <div style={{ marginTop: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', marginBottom: 4 }}>
                   <span>Budget: {formatCurrency(monthlyData.companyBudget)}</span>
@@ -594,7 +594,7 @@ export const ReportsView = ({
                 <span className="stat-title">Personal Monthly Outflow</span>
                 <User size={18} style={{ color: 'var(--accent-personal)' }} />
               </div>
-              <div className="stat-amount" style={{ color: '#6ee7b7' }}>{formatCurrency(monthlyData.personal)}</div>
+              <div className="stat-amount" style={{ color: 'var(--accent-personal-text)' }}>{formatCurrency(monthlyData.personal)}</div>
               <div style={{ marginTop: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', marginBottom: 4 }}>
                   <span>Budget: {formatCurrency(monthlyData.personalBudget)}</span>

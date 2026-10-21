@@ -39,9 +39,14 @@ const STORAGE_KEY_BUDGETS = 'covai_expenses_budgets';
 const STORAGE_KEY_THEME = 'covai_expenses_theme';
 
 export function App() {
-  // Theme state
+  // Theme state - default to light & premium
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem(STORAGE_KEY_THEME) || 'dark';
+    const saved = localStorage.getItem(STORAGE_KEY_THEME);
+    if (!saved || saved === 'dark') {
+      localStorage.setItem(STORAGE_KEY_THEME, 'light');
+      return 'light';
+    }
+    return saved;
   });
 
   // Apply theme class to document

@@ -106,7 +106,7 @@ export const StatsOverview = ({ expenses, budgets }) => {
               <Building2 size={18} />
             </div>
           </div>
-          <div className="stat-amount" style={{ color: '#a5b4fc' }}>{formatCurrency(monthCompany)}</div>
+          <div className="stat-amount" style={{ color: 'var(--accent-company-text)' }}>{formatCurrency(monthCompany)}</div>
           
           {/* Company Budget progress */}
           <div style={{ marginTop: 8 }}>
@@ -131,7 +131,7 @@ export const StatsOverview = ({ expenses, budgets }) => {
               <User size={18} />
             </div>
           </div>
-          <div className="stat-amount" style={{ color: '#6ee7b7' }}>{formatCurrency(monthPersonal)}</div>
+          <div className="stat-amount" style={{ color: 'var(--accent-personal-text)' }}>{formatCurrency(monthPersonal)}</div>
 
           {/* Personal Budget progress */}
           <div style={{ marginTop: 8 }}>
