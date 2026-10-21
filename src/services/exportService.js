@@ -5,11 +5,8 @@ import { jsPDF } from 'jspdf';
  * Format currency in Indian Rupees
  */
 export const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0
-  }).format(amount || 0);
+  const num = Math.round(Number(amount) || 0);
+  return `₹${num.toLocaleString('en-IN')}`;
 };
 
 /**
