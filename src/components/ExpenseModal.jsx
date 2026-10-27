@@ -62,7 +62,7 @@ export const ExpenseModal = ({
     } else {
       // Default reset
       setCategory('company');
-      setSubcategory(COMPANY_SUBCATEGORIES[0]);
+      setSubcategory('');
       setAmount('');
       setDate(new Date().toISOString().split('T')[0]);
       setPaymentMethod(PAYMENT_METHODS[0]);
@@ -80,18 +80,20 @@ export const ExpenseModal = ({
   // Handle category switch
   const handleCategoryChange = (newCat) => {
     setCategory(newCat);
-    if (newCat === 'company') {
-      setSubcategory(COMPANY_SUBCATEGORIES[0]);
-    } else {
-      setSubcategory(PERSONAL_SUBCATEGORIES[0]);
+    if (newCat === 'personal') {
       setIsAttendanceLinked(false);
     }
   };
 
-  const handleEmployeeSelect = (empId) => {
-    setLinkedEmployeeId(empId);
-    const emp = SAMPLE_EMPLOYEES.find(e => e.id === empId);
-    setEmployeeName(emp ? emp.name : '');
+  const handleEmployeeChange = (val) => {
+    setEmployeeName(val);
+    const matched = SAMPLE_EMPLOYEES.find(e => e.name.toLowerCase() === val.toLowerCase() || e.id.toLowerCase() === val.toLowerCase());
+    if (matched) {
+      setLinkedEmployeeId(matched.id);
+      setEmployeeName(matched.name);
+    } else {
+      setLinkedEmployeeId(val ? `EMP-${val.trim().replace(/\s+/g, '-').slice(0, 10).toUpperCase()}` : '');
+    }
   };
 
   const handleSubmit = (e) => {
@@ -100,11 +102,16 @@ export const ExpenseModal = ({
       alert('Please enter a valid amount.');
       return;
     }
+    const trimmedSubcategory = subcategory.trim();
+    if (!trimmedSubcategory) {
+      alert('Please enter a subcategory.');
+      return;
+    }
 
     const payload = {
       id: editingExpense?.id || `exp-${Date.now()}`,
       category,
-      subcategory,
+      subcategory: trimmedSubcategory,
       amount: parseFloat(amount),
       date,
       payment_method: paymentMethod,
@@ -206,17 +213,44 @@ export const ExpenseModal = ({
           {/* Subcategory & Payment Method */}
           <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 12 }}>
             <div className="form-group">
-              <label className="form-label">Subcategory</label>
-              <select
-                className="form-select"
+              <label className="form-label">Subcategory *</label>
+              <input
+                type="text"
+                list="subcategory-suggestions"
+                required
+                className="form-input"
+                placeholder={category === 'company' ? 'Type subcategory (e.g. Raw Materials)...' : 'Type subcategory (e.g. Groceries)...'}
                 value={subcategory}
                 onChange={(e) => setSubcategory(e.target.value)}
-              >
+              />
+              <datalist id="subcategory-suggestions">
                 {currentSubcategories.map((sub) => (
-                  <option key={sub} value={sub}>{sub}</option>
+                  <option key={sub} value={sub} />
                 ))}
-              </select>
+              </datalist>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
+                {currentSubcategories.slice(0, 4).map((sub) => (
+                  <button
+                    key={sub}
+                    type="button"
+                    onClick={() => setSubcategory(sub)}
+                    style={{
+                      fontSize: '0.7rem',
+                      padding: '2px 7px',
+                      borderRadius: 10,
+                      background: subcategory === sub ? 'var(--accent-primary, #6366f1)' : 'var(--bg-input, rgba(255, 255, 255, 0.05))',
+                      color: subcategory === sub ? '#ffffff' : 'var(--text-secondary)',
+                      border: '1px solid var(--border-subtle)',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {sub}
+                  </button>
+                ))}
+              </div>
             </div>
+
 
             <div className="form-group">
               <label className="form-label">Payment Method</label>
@@ -277,18 +311,21 @@ export const ExpenseModal = ({
               {isAttendanceLinked ? (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 8 }}>
                   <div>
-                    <label className="form-label" style={{ fontSize: '0.74rem' }}>Select Employee</label>
-                    <select
-                      className="form-select"
+                    <label className="form-label" style={{ fontSize: '0.74rem' }}>Employee Name / ID</label>
+                    <input
+                      type="text"
+                      list="employee-suggestions"
+                      className="form-input"
                       style={{ fontSize: '0.82rem', padding: '6px 10px' }}
-                      value={linkedEmployeeId}
-                      onChange={(e) => handleEmployeeSelect(e.target.value)}
-                    >
-                      <option value="">-- Choose Employee --</option>
+                      placeholder="Type or pick employee..."
+                      value={employeeName}
+                      onChange={(e) => handleEmployeeChange(e.target.value)}
+                    />
+                    <datalist id="employee-suggestions">
                       {SAMPLE_EMPLOYEES.map((emp) => (
-                        <option key={emp.id} value={emp.id}>{emp.name}</option>
+                        <option key={emp.id} value={emp.name} />
                       ))}
-                    </select>
+                    </datalist>
                   </div>
 
                   <div>

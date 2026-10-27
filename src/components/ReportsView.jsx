@@ -17,6 +17,80 @@ import {
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../services/exportService';
 
+// Interactive SVG Spend Donut Chart for Easy Visual Analysis
+const SpendDonutChart = ({ total = 0, segments = [] }) => {
+  const radius = 38;
+  const circumference = 2 * Math.PI * radius;
+  let accumulatedPct = 0;
+
+  return (
+    <div className="report-chart-container">
+      <div className="donut-svg-wrapper">
+        <svg viewBox="0 0 100 100" className="donut-svg">
+          {/* Subtle background track */}
+          <circle
+            cx="50"
+            cy="50"
+            r={radius}
+            fill="transparent"
+            stroke="rgba(255, 255, 255, 0.08)"
+            strokeWidth="11"
+          />
+
+          {total > 0 && segments.map((seg, idx) => {
+            const pct = seg.value / total;
+            if (pct <= 0) return null;
+            const strokeDasharray = `${pct * circumference} ${circumference}`;
+            const strokeDashoffset = -accumulatedPct * circumference;
+            accumulatedPct += pct;
+
+            return (
+              <circle
+                key={idx}
+                cx="50"
+                cy="50"
+                r={radius}
+                fill="transparent"
+                stroke={seg.color}
+                strokeWidth="11"
+                strokeDasharray={strokeDasharray}
+                strokeDashoffset={strokeDashoffset}
+                transform="rotate(-90 50 50)"
+                style={{ transition: 'all 0.4s ease' }}
+              />
+            );
+          })}
+        </svg>
+
+        {/* Center label */}
+        <div className="donut-center-text">
+          <span className="donut-center-label">Total</span>
+          <span className="donut-center-value">{formatCurrency(total)}</span>
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="donut-legend-list">
+        {segments.map((seg, idx) => {
+          const pct = total > 0 ? Math.round((seg.value / total) * 100) : 0;
+          return (
+            <div key={idx} className="donut-legend-item">
+              <div className="legend-dot-label">
+                <span className="legend-color-dot" style={{ background: seg.color }}></span>
+                <span className="legend-name">{seg.label}</span>
+              </div>
+              <div className="legend-values">
+                <span className="legend-amount">{formatCurrency(seg.value)}</span>
+                <span className="legend-pct">({pct}%)</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 export const ReportsView = ({ 
   expenses, 
   budgets, 
@@ -171,60 +245,34 @@ export const ReportsView = ({
 
   return (
     <div style={{ marginTop: 8 }}>
-      {/* Report Switcher Header */}
-      <div 
-        className="glass-panel" 
-        style={{ 
-          padding: '16px 20px', 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          flexWrap: 'wrap', 
-          gap: 16,
-          marginBottom: 20 
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ padding: 8, borderRadius: 8, background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8' }}>
-            <BarChart3 size={20} />
-          </div>
-          <div>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Financial Reports & Analytics</h2>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-              Comprehensive Daily, Weekly, and Monthly breakdown with Attendance audit
-            </div>
-          </div>
-        </div>
+      {/* Clean Segment Switcher (No redundant box) */}
+      <div className="report-switcher-pills">
+        <button
+          type="button"
+          className={`report-pill-btn ${reportType === 'daily' ? 'active' : ''}`}
+          onClick={() => setReportType('daily')}
+        >
+          <Calendar size={14} />
+          <span>Daily</span>
+        </button>
 
-        {/* View Selection Tabs */}
-        <div style={{ display: 'flex', gap: 6, background: 'var(--bg-input)', padding: 4, borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-          <button
-            className={`btn ${reportType === 'daily' ? 'btn-primary' : 'btn-outline'}`}
-            style={{ padding: '6px 14px', fontSize: '0.8rem' }}
-            onClick={() => setReportType('daily')}
-          >
-            <Calendar size={14} />
-            <span>Daily Report</span>
-          </button>
+        <button
+          type="button"
+          className={`report-pill-btn ${reportType === 'weekly' ? 'active' : ''}`}
+          onClick={() => setReportType('weekly')}
+        >
+          <CalendarDays size={14} />
+          <span>Weekly</span>
+        </button>
 
-          <button
-            className={`btn ${reportType === 'weekly' ? 'btn-primary' : 'btn-outline'}`}
-            style={{ padding: '6px 14px', fontSize: '0.8rem' }}
-            onClick={() => setReportType('weekly')}
-          >
-            <CalendarDays size={14} />
-            <span>Weekly Report</span>
-          </button>
-
-          <button
-            className={`btn ${reportType === 'monthly' ? 'btn-primary' : 'btn-outline'}`}
-            style={{ padding: '6px 14px', fontSize: '0.8rem' }}
-            onClick={() => setReportType('monthly')}
-          >
-            <TrendingUp size={14} />
-            <span>Monthly Report</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          className={`report-pill-btn ${reportType === 'monthly' ? 'active' : ''}`}
+          onClick={() => setReportType('monthly')}
+        >
+          <TrendingUp size={14} />
+          <span>Monthly</span>
+        </button>
       </div>
 
       {/* ---------------- 1. DAILY REPORT ---------------- */}
@@ -249,20 +297,24 @@ export const ReportsView = ({
 
             <div style={{ display: 'flex', gap: 8 }}>
               <button 
+                type="button"
                 className="btn btn-outline" 
-                style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                style={{ fontSize: '0.78rem', padding: '6px 10px' }}
                 onClick={() => onExportExcel(dailyData.expenses, `Daily_${selectedDay}`)}
+                title="Export Day to Excel"
               >
-                <FileSpreadsheet size={14} style={{ color: '#10b981' }} />
-                <span>Export Day to Excel</span>
+                <FileSpreadsheet size={13} style={{ color: '#10b981' }} />
+                <span>Excel</span>
               </button>
               <button 
+                type="button"
                 className="btn btn-outline" 
-                style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                style={{ fontSize: '0.78rem', padding: '6px 10px' }}
                 onClick={() => onExportPDF(dailyData.expenses, `Daily_${selectedDay}`)}
+                title="Export Day to PDF"
               >
-                <FileText size={14} style={{ color: '#ef4444' }} />
-                <span>Export Day PDF</span>
+                <FileText size={13} style={{ color: '#ef4444' }} />
+                <span>PDF</span>
               </button>
             </div>
           </div>
@@ -315,6 +367,61 @@ export const ReportsView = ({
               </div>
               <div className="stat-footer">
                 <span>{dailyData.attendanceLinked.length} linked employee/shift entries</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Visual Analysis Chart Card for Easy Daily Analysis */}
+          <div className="glass-panel report-analytics-card" style={{ marginTop: 20 }}>
+            <div className="chart-card-header">
+              <div className="chart-header-title">
+                <PieChart size={18} style={{ color: '#818cf8' }} />
+                <span>Visual Spend Distribution ({formatDate(selectedDay)})</span>
+              </div>
+              <span className="chart-header-badge">
+                {dailyData.expenses.length} Entries • Total {formatCurrency(dailyData.total)}
+              </span>
+            </div>
+
+            <div className="daily-charts-split">
+              {/* Category Ratio Donut */}
+              <div className="chart-donut-block">
+                <div className="chart-subheading">Company vs Personal Ratio</div>
+                <SpendDonutChart
+                  total={dailyData.total}
+                  segments={[
+                    { label: 'Company', value: dailyData.company, color: '#3b82f6' },
+                    { label: 'Personal', value: dailyData.personal, color: '#10b981' }
+                  ]}
+                />
+              </div>
+
+              {/* Area Breakdown Bars */}
+              <div className="chart-bars-block">
+                <div className="chart-subheading">Top Spending Areas</div>
+                {dailyData.subcategories.length === 0 ? (
+                  <div className="chart-empty-state">No expense entries recorded for this date.</div>
+                ) : (
+                  <div className="category-bars-list">
+                    {dailyData.subcategories.map(sub => {
+                      const pct = Math.round((sub.amount / (dailyData.total || 1)) * 100);
+                      return (
+                        <div key={sub.name} className="chart-bar-item">
+                          <div className="bar-item-info">
+                            <span className="bar-item-title">{sub.name}</span>
+                            <span className="bar-item-amount">{formatCurrency(sub.amount)} <small>({pct}%)</small></span>
+                          </div>
+                          <div className="chart-bar-bg">
+                            <div 
+                              className="chart-bar-fill" 
+                              style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #6366f1, #818cf8)' }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -393,20 +500,24 @@ export const ReportsView = ({
 
             <div style={{ display: 'flex', gap: 8 }}>
               <button 
+                type="button"
                 className="btn btn-outline" 
-                style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                style={{ fontSize: '0.78rem', padding: '6px 10px' }}
                 onClick={() => onExportExcel(weeklyData.expenses, `Weekly_${selectedWeekStart}`)}
+                title="Export Week to Excel"
               >
-                <FileSpreadsheet size={14} style={{ color: '#10b981' }} />
-                <span>Export Week to Excel</span>
+                <FileSpreadsheet size={13} style={{ color: '#10b981' }} />
+                <span>Excel</span>
               </button>
               <button 
+                type="button"
                 className="btn btn-outline" 
-                style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                style={{ fontSize: '0.78rem', padding: '6px 10px' }}
                 onClick={() => onExportPDF(weeklyData.expenses, `Weekly_${selectedWeekStart}`)}
+                title="Export Week to PDF"
               >
-                <FileText size={14} style={{ color: '#ef4444' }} />
-                <span>Export Week PDF</span>
+                <FileText size={13} style={{ color: '#ef4444' }} />
+                <span>PDF</span>
               </button>
             </div>
           </div>
@@ -535,20 +646,24 @@ export const ReportsView = ({
 
             <div style={{ display: 'flex', gap: 8 }}>
               <button 
+                type="button"
                 className="btn btn-outline" 
-                style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                style={{ fontSize: '0.78rem', padding: '6px 10px' }}
                 onClick={() => onExportExcel(monthlyData.expenses, `Monthly_${selectedMonth}`)}
+                title="Export Month to Excel"
               >
-                <FileSpreadsheet size={14} style={{ color: '#10b981' }} />
-                <span>Export Month to Excel</span>
+                <FileSpreadsheet size={13} style={{ color: '#10b981' }} />
+                <span>Excel</span>
               </button>
               <button 
+                type="button"
                 className="btn btn-outline" 
-                style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                style={{ fontSize: '0.78rem', padding: '6px 10px' }}
                 onClick={() => onExportPDF(monthlyData.expenses, `Monthly_${selectedMonth}`)}
+                title="Export Month to PDF"
               >
-                <FileText size={14} style={{ color: '#ef4444' }} />
-                <span>Export Month PDF</span>
+                <FileText size={13} style={{ color: '#ef4444' }} />
+                <span>PDF</span>
               </button>
             </div>
           </div>
@@ -621,6 +736,61 @@ export const ReportsView = ({
               </div>
               <div className="stat-footer">
                 <span>{monthlyData.attendanceLinked.length} payroll-sync items</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Monthly Visual Spend Analysis Chart Card */}
+          <div className="glass-panel report-analytics-card" style={{ marginTop: 20 }}>
+            <div className="chart-card-header">
+              <div className="chart-header-title">
+                <PieChart size={18} style={{ color: '#818cf8' }} />
+                <span>Monthly Visual Spend Analysis ({selectedMonth})</span>
+              </div>
+              <span className="chart-header-badge">
+                {monthlyData.expenses.length} Records • Total {formatCurrency(monthlyData.total)}
+              </span>
+            </div>
+
+            <div className="daily-charts-split">
+              {/* Category Ratio Donut */}
+              <div className="chart-donut-block">
+                <div className="chart-subheading">Company vs Personal Ratio</div>
+                <SpendDonutChart
+                  total={monthlyData.total}
+                  segments={[
+                    { label: 'Company', value: monthlyData.company, color: '#3b82f6' },
+                    { label: 'Personal', value: monthlyData.personal, color: '#10b981' }
+                  ]}
+                />
+              </div>
+
+              {/* Payment Methods Breakdown Bars */}
+              <div className="chart-bars-block">
+                <div className="chart-subheading">Payment Method Breakdown</div>
+                {monthlyData.paymentMethodsList.length === 0 ? (
+                  <div className="chart-empty-state">No payment entries recorded for this month.</div>
+                ) : (
+                  <div className="category-bars-list">
+                    {monthlyData.paymentMethodsList.map(pm => {
+                      const pct = Math.round((pm.amount / (monthlyData.total || 1)) * 100);
+                      return (
+                        <div key={pm.name} className="chart-bar-item">
+                          <div className="bar-item-info">
+                            <span className="bar-item-title">{pm.name}</span>
+                            <span className="bar-item-amount">{formatCurrency(pm.amount)} <small>({pct}%)</small></span>
+                          </div>
+                          <div className="chart-bar-bg">
+                            <div 
+                              className="chart-bar-fill" 
+                              style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #f59e0b, #fbbf24)' }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </div>

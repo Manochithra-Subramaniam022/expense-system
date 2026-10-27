@@ -201,25 +201,25 @@ export const SettingsModal = ({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
             <div>
               <div style={{ fontWeight: 600, fontSize: '0.86rem', color: 'var(--text-primary)' }}>
-                Reset Sample Data
+                Clear All Expense Records
               </div>
               <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
-                Restores factory demonstration records for Covai Machines with attendance links.
+                Permanently clears all local expense records from your system.
               </div>
             </div>
 
             <button
               className="btn btn-outline"
-              style={{ fontSize: '0.78rem', color: 'var(--accent-warning)', borderColor: 'rgba(245, 158, 11, 0.4)' }}
+              style={{ fontSize: '0.78rem', color: 'var(--accent-danger, #ef4444)', borderColor: 'rgba(239, 68, 68, 0.4)' }}
               onClick={() => {
-                if (window.confirm('Reset all expense data to initial factory demo dataset?')) {
+                if (window.confirm('Are you sure you want to clear all expense records? This cannot be undone.')) {
                   onResetData();
                   onClose();
                 }
               }}
             >
-              <RefreshCw size={13} />
-              <span>Reset Sample Data</span>
+              <Trash2 size={13} />
+              <span>Clear All Expenses</span>
             </button>
           </div>
         </div>

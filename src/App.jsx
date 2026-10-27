@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Header } from './components/Header';
 import { StatsOverview } from './components/StatsOverview';
+import { FintechHero } from './components/FintechHero';
 import { ExpenseFilters } from './components/ExpenseFilters';
 import { ExpenseTable } from './components/ExpenseTable';
 import { ReportsView } from './components/ReportsView';
@@ -30,6 +31,7 @@ import {
   BarChart3, 
   Building2, 
   User, 
+  Filter,
   Sparkles, 
   CheckCircle2 
 } from 'lucide-react';
@@ -75,7 +77,17 @@ export function App() {
   const [expenses, setExpenses] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY_EXPENSES);
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* use initial */ }
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          // Filter out any legacy static mock demo expenses (exp-101 to exp-112)
+          const staticIds = new Set([
+            'exp-101', 'exp-102', 'exp-103', 'exp-104', 'exp-105', 'exp-106',
+            'exp-107', 'exp-108', 'exp-109', 'exp-110', 'exp-111', 'exp-112'
+          ]);
+          return parsed.filter(item => !staticIds.has(item.id));
+        }
+      } catch (e) { /* use initial */ }
     }
     return INITIAL_EXPENSES;
   });
@@ -206,13 +218,13 @@ export function App() {
     showToast(`Synced ₹${newSimulatedExpense.amount} field allowance for ${randomEmployee.name}`);
   };
 
-  // Handle Reset Data
+  // Handle Clear / Reset Data
   const handleResetData = () => {
-    setExpenses(INITIAL_EXPENSES);
+    setExpenses([]);
     setBudgets(DEFAULT_BUDGETS);
-    localStorage.setItem(STORAGE_KEY_EXPENSES, JSON.stringify(INITIAL_EXPENSES));
+    localStorage.removeItem(STORAGE_KEY_EXPENSES);
     localStorage.setItem(STORAGE_KEY_BUDGETS, JSON.stringify(DEFAULT_BUDGETS));
-    showToast('Factory demo data restored');
+    showToast('All expense records cleared');
   };
 
   // Save budgets
@@ -333,95 +345,171 @@ export function App() {
         </div>
       )}
 
-      {/* Top Header */}
-      <Header
+      {/* 1. Luminous Deep Sapphire Master Fintech Hero Card (Screen 1 & 3) */}
+      <FintechHero
+        expenses={expenses}
+        budgets={budgets}
         cloudConfig={cloudConfig}
         onOpenAddModal={() => { setEditingExpense(null); setIsAddModalOpen(true); }}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenAttendance={() => setIsAttendanceOpen(true)}
         theme={theme}
         onToggleTheme={toggleTheme}
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        onSelectCategory={(catName) => setSearchTerm(catName)}
       />
 
-      {/* High-level Metric Overview Cards */}
-      <StatsOverview
-        expenses={expenses}
-        budgets={budgets}
-      />
+      {/* 2. Sleek Bottom Curved Sheet (Recent Transactions & Reports) */}
+      {/* 2. Sleek Bottom Sheet */}
+      <div className="fintech-bottom-sheet">
+        {/* Navigation Tabs Bar */}
+        <div className="sheet-header-nav">
+          <div className="sheet-title-group">
+            <h2 className="sheet-title">
+              {activeTab === 'reports' 
+                ? 'Analytics & Reports' 
+                : activeTab === 'filters' 
+                ? 'Search, Filters & Export' 
+                : activeTab === 'company'
+                ? 'Company Expenses'
+                : activeTab === 'personal'
+                ? 'Personal Expenses'
+                : 'Recent Transactions'}
+            </h2>
+            <span className="sheet-count-badge">
+              {activeTab === 'reports' 
+                ? 'Detailed Summary' 
+                : activeTab === 'filters'
+                ? `${filteredExpenses.length} matching`
+                : activeTab === 'company'
+                ? `${expenses.filter(e => e.category === 'company').length} records`
+                : activeTab === 'personal'
+                ? `${expenses.filter(e => e.category === 'personal').length} records`
+                : `${expenses.length} records`}
+            </span>
+          </div>
 
-      {/* Navigation Tabs */}
-      <nav className="nav-tab-bar" aria-label="Main Navigation">
-        <button
-          className={`nav-tab-btn ${activeTab === 'all_expenses' ? 'active' : ''}`}
-          onClick={() => setActiveTab('all_expenses')}
-        >
-          <Receipt size={16} />
-          <span>Date-wise Expenses ({expenses.length})</span>
-        </button>
+          <nav className="nav-tab-bar" aria-label="Main Navigation">
+            <button
+              className={`nav-tab-btn ${activeTab === 'all_expenses' ? 'active' : ''}`}
+              onClick={() => setActiveTab('all_expenses')}
+            >
+              <Receipt size={15} />
+              <span>All Expenses</span>
+            </button>
 
-        <button
-          className={`nav-tab-btn ${activeTab === 'reports' ? 'active' : ''}`}
-          onClick={() => setActiveTab('reports')}
-        >
-          <BarChart3 size={16} />
-          <span>Daily, Weekly & Monthly Reports</span>
-        </button>
+            <button
+              className={`nav-tab-btn ${activeTab === 'company' ? 'active' : ''}`}
+              onClick={() => setActiveTab('company')}
+            >
+              <Building2 size={15} style={{ color: 'var(--accent-company)' }} />
+              <span>Company</span>
+            </button>
 
-        <button
-          className={`nav-tab-btn ${activeTab === 'company' ? 'active' : ''}`}
-          onClick={() => setActiveTab('company')}
-        >
-          <Building2 size={16} style={{ color: 'var(--accent-company)' }} />
-          <span>Company Expenses ({expenses.filter(e => e.category === 'company').length})</span>
-        </button>
+            <button
+              className={`nav-tab-btn ${activeTab === 'personal' ? 'active' : ''}`}
+              onClick={() => setActiveTab('personal')}
+            >
+              <User size={15} style={{ color: 'var(--accent-personal)' }} />
+              <span>Personal</span>
+            </button>
 
-        <button
-          className={`nav-tab-btn ${activeTab === 'personal' ? 'active' : ''}`}
-          onClick={() => setActiveTab('personal')}
-        >
-          <User size={16} style={{ color: 'var(--accent-personal)' }} />
-          <span>Personal Expenses ({expenses.filter(e => e.category === 'personal').length})</span>
-        </button>
-      </nav>
+            <button
+              className={`nav-tab-btn ${activeTab === 'filters' ? 'active' : ''}`}
+              onClick={() => setActiveTab('filters')}
+            >
+              <Filter size={15} />
+              <span>Search & Filters</span>
+            </button>
 
-      {/* Main Tab Content */}
-      {activeTab === 'reports' ? (
-        <ReportsView
-          expenses={expenses}
-          budgets={budgets}
-          onExportExcel={handleExportExcel}
-          onExportPDF={handleExportPDF}
-        />
-      ) : (
-        <div>
-          {/* Filters & Export Toolbar */}
-          <ExpenseFilters
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            dateFilter={dateFilter}
-            onDateFilterChange={setDateFilter}
-            customStartDate={customStartDate}
-            customEndDate={customEndDate}
-            onCustomDatesChange={(start, end) => { setCustomStartDate(start); setCustomEndDate(end); }}
-            categoryFilter={categoryFilter}
-            onCategoryFilterChange={setCategoryFilter}
-            attendanceOnly={attendanceOnly}
-            onAttendanceOnlyChange={setAttendanceOnly}
-            onExportExcel={() => handleExportExcel(filteredExpenses, 'Filtered_Expenses')}
-            onExportCSV={() => handleExportCSV(filteredExpenses)}
-            onExportPDF={() => handleExportPDF(filteredExpenses, 'Filtered_Report')}
-            filteredCount={filteredExpenses.length}
+            <button
+              className={`nav-tab-btn ${activeTab === 'reports' ? 'active' : ''}`}
+              onClick={() => setActiveTab('reports')}
+            >
+              <BarChart3 size={15} />
+              <span>Reports</span>
+            </button>
+          </nav>
+        </div>
+
+        {/* Tab Content Display */}
+        {activeTab === 'reports' ? (
+          <ReportsView
+            expenses={expenses}
+            budgets={budgets}
+            onExportExcel={handleExportExcel}
+            onExportPDF={handleExportPDF}
           />
+        ) : activeTab === 'filters' ? (
+          <div>
+            {/* The Full Search, Filter & Export Box - only displayed in this dedicated tab! */}
+            <ExpenseFilters
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              dateFilter={dateFilter}
+              onDateFilterChange={setDateFilter}
+              customStartDate={customStartDate}
+              customEndDate={customEndDate}
+              onCustomDatesChange={(start, end) => { setCustomStartDate(start); setCustomEndDate(end); }}
+              categoryFilter={categoryFilter}
+              onCategoryFilterChange={setCategoryFilter}
+              attendanceOnly={attendanceOnly}
+              onAttendanceOnlyChange={setAttendanceOnly}
+              onExportExcel={() => handleExportExcel(filteredExpenses, 'Filtered_Expenses')}
+              onExportCSV={() => handleExportCSV(filteredExpenses)}
+              onExportPDF={() => handleExportPDF(filteredExpenses, 'Filtered_Report')}
+              filteredCount={filteredExpenses.length}
+            />
 
-          {/* Date-wise Table */}
+            {/* Filtered Results Table */}
+            <ExpenseTable
+              expenses={filteredExpenses}
+              onEditExpense={handleEditExpense}
+              onDeleteExpense={handleDeleteExpense}
+              onOpenAddModal={() => { setEditingExpense(null); setIsAddModalOpen(true); }}
+            />
+
+            <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                Database Mode: <strong>{cloudConfig.isConfigured ? 'Supabase Cloud Connected' : 'Local Storage'}</strong>
+              </div>
+              <button 
+                className="btn btn-outline" 
+                style={{ fontSize: '0.8rem', padding: '6px 14px' }}
+                onClick={() => setIsSettingsOpen(true)}
+              >
+                ⚙️ Database & Budget Settings
+              </button>
+            </div>
+          </div>
+
+        ) : activeTab === 'company' ? (
           <ExpenseTable
-            expenses={filteredExpenses}
+            expenses={expenses.filter(e => e.category === 'company')}
             onEditExpense={handleEditExpense}
             onDeleteExpense={handleDeleteExpense}
             onOpenAddModal={() => { setEditingExpense(null); setIsAddModalOpen(true); }}
           />
-        </div>
-      )}
+        ) : activeTab === 'personal' ? (
+          <ExpenseTable
+            expenses={expenses.filter(e => e.category === 'personal')}
+            onEditExpense={handleEditExpense}
+            onDeleteExpense={handleDeleteExpense}
+            onOpenAddModal={() => { setEditingExpense(null); setIsAddModalOpen(true); }}
+          />
+        ) : (
+          /* Landing Page: All Expenses - Completely clean without any filter box! */
+          <ExpenseTable
+            expenses={expenses}
+            onEditExpense={handleEditExpense}
+            onDeleteExpense={handleDeleteExpense}
+            onOpenAddModal={() => { setEditingExpense(null); setIsAddModalOpen(true); }}
+          />
+        )}
+      </div>
+
+
 
       {/* Add / Edit Expense Modal */}
       <ExpenseModal

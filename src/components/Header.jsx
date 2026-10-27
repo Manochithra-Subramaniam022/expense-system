@@ -26,10 +26,8 @@ export const Header = ({
           <TrendingUp size={22} strokeWidth={2.4} />
         </div>
         <div className="brand-titles">
-          <h1>COVAI MACHINES</h1>
-          <div className="brand-subtitle">
-            <span>Expense Manager</span>
-            <span className="dot-divider">•</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <h1>COVAI MACHINES</h1>
             <button 
               className="simple-cloud-link" 
               onClick={onOpenSettings}
@@ -38,6 +36,9 @@ export const Header = ({
               <span className={`status-dot ${cloudConfig.isConfigured ? 'connected' : 'local'}`}></span>
               <span>{cloudConfig.isConfigured ? 'Cloud' : 'Local'}</span>
             </button>
+          </div>
+          <div className="brand-subtitle">
+            <span className="brand-tagline">Hey Vasanth, innaiku enna dhanda selavu pannuna?</span>
           </div>
         </div>
       </div>
